@@ -2,7 +2,7 @@ const express = require('express');
 const app = express()
 const cors = require('cors')
 const port = 5000
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require('dotenv').config()
 app.use(cors())
 app.use(express.json())
@@ -33,10 +33,10 @@ async function run() {
 
         const database = client.db('startup-forge-auth');
         const startupCollection = database.collection('opportunities');
+        const startupCollection2 = database.collection('startups');
 
         app.get('/api/opportunities', async (req, res) => {
             const query = {};
-            console.log(req.query)
             if(req.query.companyId){
                 query.companyId = req.query.companyId;
             }
@@ -45,7 +45,6 @@ async function run() {
             }
             const cursor = startupCollection.find(query);
             const result = await cursor.toArray();
-            console.log(result)
             res.json(result);
         });
 
@@ -53,6 +52,35 @@ async function run() {
             const opportunity = req.body;
             console.log('New opportunity:', opportunity);
             const result = await startupCollection.insertOne(opportunity);
+            res.json(result);
+        });
+
+        // startup api
+        app.get('/api/startups', async (req, res) => {
+            const query = {};
+           if(req.query.startupId){
+            query.startupId = req.query.startupId;
+           }
+           const cursor = startupCollection2.find(query);
+           const result = await cursor.toArray(query);
+           console.log("result");
+           res.json(result);
+           
+        });
+
+        app.get('/api/startups/:id',async (req,res)=>{
+            const id = req.params.id;
+            const query ={
+                _id: new ObjectId(id)
+            }
+            const result = await  startupCollection2.findOne(query);
+            res.send(result);
+        })
+
+        app.post('/api/startups', async (req, res) => {
+            const startup = req.body;
+            console.log('New startup:', startup);
+            const result = await startupCollection2.insertOne(startup); 
             res.json(result);
         });
 
